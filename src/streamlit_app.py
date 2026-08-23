@@ -97,7 +97,7 @@ with right_column:
         value=33,
     )
 
-if st.button("🔍 Predict Risk", use_container_width=True):
+if st.button("🔍 Predict Risk", width="stretch"):
     patient_values = {
         "Pregnancies": pregnancies,
         "Glucose": glucose,
