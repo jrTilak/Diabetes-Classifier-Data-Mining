@@ -49,6 +49,16 @@ Run all cells in order. The notebook:
 
 The Decision Tree achieved the highest test accuracy at **78.57%**, while the deployed MLP achieved the highest ROC-AUC at **81.04%**. See [RESULT.md](RESULT.md) for the complete comparison.
 
+## Build the report
+
+The reproducible LaTeX report is in `src-tex`. With Tectonic and Poppler installed, rebuild its figures, PDF, and local citation/consistency/similarity audit with:
+
+```bash
+make -C src-tex
+```
+
+See [src-tex/README.md](src-tex/README.md) for report-specific notes and limitations.
+
 ## Project structure
 
 ```text
@@ -59,4 +69,6 @@ src/project_paths.py               Shared project paths
 src/streamlit_app.py               Streamlit application
 out/models/diabetes_pipeline.joblib Trained deployment pipeline
 RESULT.md                           Training summary and metrics
+src-tex/report.tex                  LaTeX report source
+src-tex/report.pdf                  Rendered report
 ```

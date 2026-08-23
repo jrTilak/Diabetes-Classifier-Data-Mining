@@ -1,0 +1,355 @@
+% Springer Nature author template, version 3.1 (December 2024).
+% Replace the author/course details below with the final institutional details
+% and review the full text in your own words before submission.
+\documentclass[pdflatex,sn-vancouver-num]{sn-jnl}
+
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{xcolor}
+
+\hypersetup{
+    pdftitle={Comparative Evaluation of Five Machine Learning Classifiers for Diabetes Outcome Classification},
+    pdfauthor={Jrtilak}
+}
+
+\raggedbottom
+
+\begin{document}
+
+\title[Diabetes outcome classification]{Comparative Evaluation of Five Machine Learning Classifiers for Diabetes Outcome Classification}
+
+\author*[1]{\fnm{Jrtilak}}\email{contact@jrtilak.dev}
+
+\affil*[1]{\orgdiv{Department of Computer Engineering}, \orgname{Data Warehouse and Data Mining Laboratory, BCT IV/I C/D}}
+
+\abstract{This report compares five machine learning classifiers on a local copy of the Pima Indians Diabetes dataset. The aim was to build a reproducible educational experiment and examine how model conclusions change when several evaluation measures are considered together. The dataset contains 768 records, eight input variables, and a binary outcome. It was divided once into a stratified training set of 614 records and a held-out test set of 154 records. Zeros in glucose, blood pressure, skin thickness, insulin, and body mass index were treated as missing. Median imputation and standard scaling were learned only from the training set. A custom $k$-nearest neighbours classifier, a decision tree, a calibrated support vector machine, Gaussian Naive Bayes, and a multi-layer perceptron were evaluated. The decision tree obtained the highest test accuracy (78.57\%), sensitivity (68.52\%), F1 score (69.16\%), and Matthews correlation coefficient (0.527). The multi-layer perceptron had the highest ROC--AUC (81.04\%). These results do not establish clinical usefulness because they come from one small, demographically restricted dataset and one train--test split. The saved multi-layer perceptron pipeline and Streamlit interface are therefore presented only as an educational demonstration.}
+
+\keywords{diabetes classification, machine learning, Pima Indians Diabetes dataset, comparative evaluation, data mining}
+
+\maketitle
+
+\section{Introduction}\label{sec:introduction}
+
+Diabetes is a chronic condition associated with elevated blood glucose and can lead to serious damage when it is not managed. The World Health Organization describes diabetes as a major public-health problem and stresses the value of diagnosis and continued care \cite{who2024diabetes}. This makes diabetes data a common setting for learning how classification algorithms work. It does not, however, mean that a small classroom model can be used as a medical device.
+
+This project studies a narrower question: how do five familiar classifiers behave when they are trained and tested under the same preprocessing and data split? The task is to classify the recorded binary outcome in the Pima dataset from eight measurements. The work compares a custom implementation of $k$-nearest neighbours (KNN), a decision tree, a calibrated support vector machine (SVM), Gaussian Naive Bayes, and a multi-layer perceptron (MLP). The comparison uses accuracy, precision, sensitivity, specificity, F1 score, receiver operating characteristic area under the curve (ROC--AUC), and Matthews correlation coefficient (MCC).
+
+Three practical points guide the experiment. First, the positive and negative classes are not equally represented, so accuracy alone can hide important errors. Second, the project treats zeros in five measurement columns as missing, so this rule needs to be applied consistently. Third, preprocessing must be fitted only on training data. Otherwise, information from the test set can enter the model before evaluation and make the result look better than it really is.
+
+The report makes the following contributions:
+
+\begin{itemize}
+    \item it records a leakage-resistant preprocessing and evaluation workflow;
+    \item it reproduces all figures and tables directly from the repository data;
+    \item it compares five classifiers with threshold-based and ranking-based measures; and
+    \item it connects the selected MLP pipeline to a small Streamlit demonstration while stating its limits.
+\end{itemize}
+
+The rest of the report follows the organization of the supplied example paper. Section~\ref{sec:related} gives the research background. Sections~\ref{sec:methods} and \ref{sec:models} describe the data, preprocessing, and classifiers. Section~\ref{sec:metrics} defines the evaluation measures. Section~\ref{sec:results} presents the findings and limitations, and Section~\ref{sec:conclusion} concludes the work.
+
+\section{Related Work}\label{sec:related}
+
+The dataset used in this project is linked to the work of Smith et al., who studied diabetes onset in a high-risk Pima population and described the clinical variables behind the prediction task \cite{smith1988adap}. That early study helped make this group of attributes a widely used machine learning benchmark. The local CSV file has the same eight predictors and binary outcome, although the repository does not record the exact website from which this copy was downloaded. For that reason, the original paper is used as the dataset-lineage reference rather than claiming an unverified download source.
+
+Later research has compared different classifiers on diabetes data. Maniruzzaman et al. examined several machine learning approaches and preprocessing choices \cite{maniruzzaman2017comparative}. Sisodia and Sisodia compared three common classification algorithms \cite{sisodia2018prediction}, while Khanam and Foo studied a wider set of conventional and neural models \cite{khanam2021comparison}. More recent work has continued to explore machine learning for earlier diabetes classification \cite{iparraguirre2023early}. Together, these studies show that model comparison remains useful, but their reported scores are not directly interchangeable. Different splits, validation schemes, missing-value rules, and tuning procedures can change the result.
+
+The five model families in this report also have different foundations. Nearest-neighbour classification assigns a label from nearby training examples \cite{cover1967nearest}. Classification trees divide the feature space with a sequence of learned rules \cite{breiman1984cart}. Support-vector machines seek a separating boundary with a large margin and can use kernels for non-linear patterns \cite{cortes1995svm}. Neural networks learn layered representations through weight updates such as back-propagation \cite{rumelhart1986backprop}. These differences justify testing more than one model under a shared protocol rather than assuming that the most complex classifier will win.
+
+\section{Materials and Methods}\label{sec:methods}
+
+\subsection{Experimental workflow}\label{subsec:workflow}
+
+Figure~\ref{fig:workflow} summarizes the full experiment. The raw data were audited before a stratified split was made. The imputer and scaler were then fitted on the training portion only. All five classifiers received the same transformed features, and evaluation took place once on the untouched test set. Finally, the fitted preprocessing steps and MLP were stored as one pipeline for the demonstration app.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/workflow.pdf}
+    \caption{Reproducible workflow used in the project. The figure was generated from the report script; no external image was used.}
+    \label{fig:workflow}
+\end{figure}
+
+\subsection{Dataset description}\label{subsec:dataset}
+
+The local dataset contains 768 rows, eight predictors, and one target column named \texttt{Outcome}. Outcome 0 appears in 500 records (65.10\%), and outcome 1 appears in 268 records (34.90\%). No fully duplicated rows were found. The variables are listed in Table~\ref{tab:variables}. Their meaning follows the dataset description in the original study \cite{smith1988adap}.
+
+\begin{table}[t]
+\caption{Variables in the local Pima Indians Diabetes dataset.}\label{tab:variables}
+\centering
+\begin{tabular}{@{}p{0.31\textwidth}p{0.61\textwidth}@{}}
+\toprule
+Variable & Meaning \\
+\midrule
+Pregnancies & Number of recorded pregnancies \\
+Glucose & Plasma glucose concentration after a two-hour oral glucose tolerance test (mg/dL) \\
+BloodPressure & Diastolic blood pressure (mmHg) \\
+SkinThickness & Triceps skin-fold thickness (mm) \\
+Insulin & Two-hour serum insulin ($\mu$U/mL) \\
+BMI & Body mass index ($\mathrm{kg}/\mathrm{m}^{2}$) \\
+DiabetesPedigreeFunction & Dataset-specific score summarizing family history \\
+Age & Age in years \\
+Outcome & Binary class: 0 or 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The cohort described by Smith et al. consists of adult women of Pima heritage \cite{smith1988adap}. Therefore, the data do not represent the general population. In this report, the word ``diabetes'' refers to the recorded dataset label, not a new clinical diagnosis made by the software. Because the local CSV has no accompanying source metadata, its exact label definition and time horizon cannot be confirmed from the repository.
+
+\subsection{Data audit and preprocessing}\label{subsec:preprocessing}
+
+Under the preprocessing rule chosen for this experiment, zeros in five measurement columns represent missing observations. Figure~\ref{fig:audit} shows both the class distribution and the number of affected rows. Insulin has the largest number (374), followed by skin thickness (227). The counts for blood pressure, BMI, and glucose are 35, 11, and 5 respectively. Zeros in pregnancies and age were not changed because those columns were not included in this rule.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/dataset_audit.pdf}
+    \caption{Dataset audit: outcome counts and zeros treated as missing. Both panels were generated from the local CSV file.}
+    \label{fig:audit}
+\end{figure}
+
+The data were separated before any imputation or scaling. A stratified 80/20 split with \texttt{random\_state=42} produced 614 training rows and 154 test rows. The training set contains 400 negative and 214 positive examples; the test set contains 100 negative and 54 positive examples.
+
+Within the training data, zero values in the five selected columns were replaced by each column's non-zero median. The learned medians were 117 for glucose, 72 for blood pressure, 29 for skin thickness, 125 for insulin, and 32.4 for BMI. The same fixed medians were then applied to the test data. Standard scaling was fitted after imputation, again using training data only. For feature $x_j$, the transformation was
+
+\begin{equation}
+z_j = \frac{x_j-\mu_j}{\sigma_j},
+\label{eq:standardization}
+\end{equation}
+
+where $\mu_j$ and $\sigma_j$ are the mean and standard deviation learned from the training set. Scikit-learn pipelines and column transformations were used to keep these operations together \cite{pedregosa2011scikit}. This arrangement also ensures that the app applies the same transformation used during training.
+
+For the descriptive correlation plot only, the selected zeros were replaced with missing values and Pearson correlations were calculated using the remaining pairs. This exploratory step did not impute the full dataset and was not used for model training.
+
+\subsection{Software and reproducibility}\label{subsec:software}
+
+The final rerun used Python 3.12, scikit-learn 1.9.0, pandas 2.3.3, NumPy 2.5.2, Matplotlib 3.11.1, and seaborn 0.13.2. The main models and metrics use scikit-learn \cite{pedregosa2011scikit}; KNN was implemented directly with NumPy to demonstrate its distance and voting steps. The experiment was rerun on an x86-64 computer with a 13th generation Intel Core i7-13620H processor and 31 GiB of memory. No GPU was required.
+
+The repository pins the Python dependencies and stores the split seed and model settings in code. Running \texttt{generate\_figures.py} rebuilds the plots, numerical JSON file, CSV table, and LaTeX results table. The script also checks the newly computed values against the metrics reported here and stops if they differ.
+
+\section{Machine Learning Classifiers}\label{sec:models}
+
+Table~\ref{tab:settings} lists the model settings used in the final run. They were fixed in the notebook; no grid search or repeated validation procedure was recorded. The purpose was a controlled comparison of several model families, not a claim that each model had been fully optimized.
+
+\begin{table}[!h]
+\caption{Classifier settings used in the experiment.}\label{tab:settings}
+\centering
+\begin{tabular}{@{}p{0.25\textwidth}p{0.67\textwidth}@{}}
+\toprule
+Classifier & Main settings \\
+\midrule
+Custom KNN & $k=7$; Euclidean distance; uniform majority vote \\
+Decision Tree & Gini criterion; maximum depth 4; minimum split size 10; seed 42 \\
+Calibrated SVM & RBF kernel; $C=1$; $\gamma=\texttt{scale}$; five-fold sigmoid calibration; \texttt{ensemble=False} \\
+Gaussian Naive Bayes & Scikit-learn default variance smoothing \\
+MLP & Hidden layers (16, 8); ReLU; Adam; $\alpha=0.01$; at most 1000 iterations; seed 42 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Custom $k$-nearest neighbours}\label{subsec:knn}
+
+KNN stores the training examples and compares a new row with them. For two standardized feature vectors $\mathbf{x}$ and $\mathbf{x}_i$, the Euclidean distance is
+
+\begin{equation}
+d(\mathbf{x},\mathbf{x}_i)=\sqrt{\sum_{j=1}^{8}(x_j-x_{ij})^2}.
+\label{eq:distance}
+\end{equation}
+
+The implementation selects the seven smallest distances and predicts the majority class. Its score for class 1 is the fraction of these seven neighbours that belong to class 1. Scaling matters for KNN because otherwise a large-range feature can dominate the distance. The general nearest-neighbour principle is described by Cover and Hart \cite{cover1967nearest}.
+
+\subsection{Decision tree}\label{subsec:tree}
+
+The decision tree recursively divides rows using one feature at a time. Candidate splits were evaluated with Gini impurity,
+
+\begin{equation}
+G = 1-\sum_{c\in\{0,1\}}p_c^2,
+\label{eq:gini}
+\end{equation}
+
+where $p_c$ is the class proportion in a node. Maximum depth 4 and minimum split size 10 limit the tree's size. These controls reduce memorization, although they do not replace validation. The approach follows the classification-tree family described by Breiman et al. \cite{breiman1984cart}.
+
+\subsection{Calibrated support vector machine}\label{subsec:svm}
+
+The SVM used a radial basis function kernel,
+
+\begin{equation}
+K(\mathbf{x},\mathbf{x}')=\exp\left(-\gamma\lVert\mathbf{x}-\mathbf{x}'\rVert^2\right),
+\label{eq:rbf}
+\end{equation}
+
+with $C=1$ and scikit-learn's scaled value of $\gamma$. The kernel lets the classifier form a non-linear boundary in the transformed feature space. SVMs originate from the maximum-margin method developed by Cortes and Vapnik \cite{cortes1995svm}. Because a basic SVM does not produce class probabilities directly, sigmoid calibration with five internal folds was added to obtain scores for ROC analysis. These scores were used for comparison only and are not claimed to be clinically calibrated probabilities.
+
+\subsection{Gaussian Naive Bayes}\label{subsec:nb}
+
+Gaussian Naive Bayes models each feature as normally distributed within each class and combines the feature likelihoods using Bayes' rule. Its main simplification is conditional independence between features after the class is known. That assumption is unlikely to be exact for clinical measurements, but the model remains a useful lightweight baseline. The implementation used the default scikit-learn settings \cite{pedregosa2011scikit}.
+
+\subsection{Multi-layer perceptron}\label{subsec:mlp}
+
+The MLP contains two hidden layers with 16 and 8 units. Rectified linear unit activation was used in each hidden layer, and the Adam optimizer updated the weights. The regularization value $\alpha=0.01$ penalizes large weights. Training was allowed to continue for at most 1000 iterations with seed 42. The model follows the layered learning and back-propagation idea described by Rumelhart et al. \cite{rumelhart1986backprop}.
+
+The MLP was saved together with the fitted imputer and scaler in one joblib pipeline. The Streamlit interface loads this single artifact, accepts eight numeric inputs, and displays the predicted class and model score. The interface also states that it is an educational tool rather than medical advice.
+
+\section{Evaluation Metrics}\label{sec:metrics}
+
+Let true positives (TP) and true negatives (TN) be correctly classified positive and negative rows. False positives (FP) are negative rows classified as positive, and false negatives (FN) are positive rows classified as negative. The threshold-based measures are
+
+\begin{align}
+\text{Accuracy} &= \frac{TP+TN}{TP+TN+FP+FN}, \label{eq:accuracy}\\
+\text{Precision} &= \frac{TP}{TP+FP}, \label{eq:precision}\\
+\text{Sensitivity} &= \frac{TP}{TP+FN}, \label{eq:sensitivity}\\
+\text{Specificity} &= \frac{TN}{TN+FP}, \label{eq:specificity}\\
+F_1 &= \frac{2\,\text{Precision}\,\text{Sensitivity}}
+{\text{Precision}+\text{Sensitivity}}. \label{eq:f1}
+\end{align}
+
+Accuracy gives the overall correct fraction. Precision describes how many positive predictions are correct, while sensitivity describes how many recorded positives are found. Specificity measures how many negatives are correctly rejected. F1 is the harmonic mean of precision and sensitivity.
+
+MCC uses all four confusion-matrix counts:
+
+\begin{equation}
+\mathrm{MCC}=\frac{TP\times TN-FP\times FN}
+{\sqrt{(TP+FP)(TP+FN)(TN+FP)(TN+FN)}}.
+\label{eq:mcc}
+\end{equation}
+
+MCC was introduced by Matthews \cite{matthews1975mcc} and is useful when class counts are unequal because a high value requires agreement in both classes \cite{chicco2020mcc}. Its range is $-1$ to 1, where 1 indicates perfect agreement, 0 is no better than uncorrelated predictions, and $-1$ indicates complete disagreement.
+
+ROC curves show sensitivity against false-positive rate over many score thresholds \cite{fawcett2006roc}. ROC--AUC summarizes this curve and can be interpreted as the probability that a randomly selected positive row receives a higher score than a randomly selected negative row \cite{hanley1982auc}. A value of 0.5 corresponds to chance ranking and 1 indicates perfect ranking. AUC does not select a clinical decision threshold and does not prove that the scores are well calibrated.
+
+\section{Results and Discussion}\label{sec:results}
+
+\subsection{Exploratory observations}\label{subsec:eda}
+
+The class audit in Figure~\ref{fig:audit} shows a moderate imbalance toward outcome 0. A classifier that always predicts 0 would therefore obtain 65.10\% accuracy while failing to identify any positive row. This is why the evaluation includes sensitivity, F1, AUC, and MCC rather than accuracy alone.
+
+Figure~\ref{fig:correlation} presents pairwise Pearson correlations after treating the selected zeros as missing for this descriptive calculation. Glucose has the largest linear relationship with Outcome ($r=0.49$), followed by BMI ($r=0.31$), insulin ($r=0.30$), skin thickness ($r=0.26$), and age ($r=0.24$). These values describe this sample only. They do not establish causation, and they are not a substitute for multivariable evaluation.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.88\textwidth]{figures/correlation_heatmap.pdf}
+    \caption{Lower-triangle Pearson correlation matrix. Selected zeros in the five measurement fields were treated as missing and omitted pairwise. The plot was generated from the local dataset.}
+    \label{fig:correlation}
+\end{figure}
+
+\subsection{Model comparison}\label{subsec:comparison}
+
+Table~\ref{tab:metrics} gives the complete held-out results. The decision tree produced the highest accuracy (78.57\%), precision (69.81\%), sensitivity (68.52\%), F1 (69.16\%), and MCC (0.527). It also shared the highest specificity (84.00\%) with the calibrated SVM. The MLP had the highest ROC--AUC (81.04\%). Figure~\ref{fig:comparison} makes the main differences easier to see.
+
+\begin{table}[!h]
+\caption{Performance on the 154-row held-out test set. Percentage values are shown except for MCC. Bold marks the best value in each column; the specificity maximum is tied.}\label{tab:metrics}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\input{generated/model_metrics.tex}
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/model_comparison.pdf}
+    \caption{Selected test metrics for all five classifiers. The bars were generated from the same predictions used in Table~\ref{tab:metrics}.}
+    \label{fig:comparison}
+\end{figure}
+
+The result does not identify one model as universally best. If the priority is the fixed default threshold used in this experiment, the decision tree gives the strongest overall classification result. If ranking quality across possible thresholds is the priority, the MLP gives the largest AUC. Even then, its advantage over the calibrated SVM is only 1.41 percentage points on this one split. No significance test or repeated cross-validation was performed, so the small score differences should not be treated as proof of superiority.
+
+\subsection{Error patterns}\label{subsec:errors}
+
+Figure~\ref{fig:confusion} shows the confusion matrix for each model. The decision tree correctly classified 84 of 100 negative rows and 37 of 54 positive rows. It made 16 false-positive and 17 false-negative errors. KNN and the calibrated SVM each found only 30 positive rows and missed 24. Gaussian Naive Bayes found 34 positives but produced 26 false positives, which explains its higher sensitivity than KNN and SVM but lower specificity. The MLP was between these cases, with 32 true positives, 22 false negatives, 80 true negatives, and 20 false positives.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/confusion_matrices.pdf}
+    \caption{Confusion matrices for the held-out test set. Rows are actual labels and columns are predicted labels. All panels were generated from the final rerun.}
+    \label{fig:confusion}
+\end{figure}
+
+In a medical setting, false negatives and false positives can have different consequences. This educational experiment did not choose a cost-sensitive threshold or define a clinical operating point, so it would be wrong to translate these counts into a treatment recommendation. They are useful here because they show what the summary scores hide.
+
+\subsection{ROC analysis}\label{subsec:roc}
+
+The ROC curves in Figure~\ref{fig:roc} are all above the chance diagonal for most thresholds. MLP has the largest measured area, followed by the calibrated SVM, KNN, decision tree, and Gaussian Naive Bayes. The ordering differs from accuracy because AUC considers score ranking across thresholds, while accuracy uses one set of predicted labels.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.84\textwidth]{figures/roc_curves.pdf}
+    \caption{ROC curves and AUC values on the held-out test set. The diagonal line represents chance-level ranking.}
+    \label{fig:roc}
+\end{figure}
+
+\subsection{Exploratory feature sensitivity}\label{subsec:importance}
+
+Permutation importance was calculated for the saved MLP pipeline by shuffling one raw test feature at a time, repeating the shuffle 30 times, and measuring the change in ROC--AUC. Figure~\ref{fig:importance} shows that glucose had the largest mean decrease (0.117), followed by age (0.053). BMI and insulin had smaller positive means. Blood pressure and skin thickness were close to zero and slightly negative in this particular test sample.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.88\textwidth]{figures/permutation_importance.pdf}
+    \caption{Exploratory MLP permutation importance based on 30 shuffles per feature. Error bars show one standard deviation across shuffles. Negative values can occur from sampling variation.}
+    \label{fig:importance}
+\end{figure}
+
+This analysis is descriptive, not causal. Correlated features can share information, and the estimate is based on only 154 test rows. It should not be read as medical evidence that one variable is unimportant. Because the same held-out set was also used for model reporting, these importance values should not guide further tuning without a new validation set.
+
+\subsection{Deployment demonstration}\label{subsec:deployment}
+
+The repository saves the MLP, imputer, and scaler as \path{out/models/diabetes_pipeline.joblib}. The MLP was chosen for the demonstration because it had the highest measured AUC, not because it was best on every metric. The Streamlit app collects the eight input values, passes them through this pipeline, and displays a class and score. The pipeline design prevents a training--inference mismatch: the same learned medians, column order, and scaling values are applied each time.
+
+This deployment choice was made after viewing the same test results reported above. It is therefore a demonstration choice rather than an independent validation result. The displayed score is not an externally calibrated patient risk, and the interface is not suitable for diagnosis, screening, or treatment decisions.
+
+\subsection{Limitations}\label{subsec:limitations}
+
+The main limitations are as follows:
+
+\begin{itemize}
+    \item The sample is small and comes from a restricted cohort of adult women of Pima heritage. Results cannot be generalized to men, other age groups, or other populations without new evidence.
+    \item The repository does not preserve the exact download source or a data dictionary beside the CSV. The original study supports the dataset lineage, but full provenance should be confirmed before publication.
+    \item Performance was measured on one stratified split. There are no cross-validation intervals, repeated runs, or external test data, so uncertainty around the reported differences is unknown.
+    \item The fixed model settings were not obtained through a documented tuning process. Conversely, choosing the demonstration model after inspecting test AUC reuses the test set for a decision.
+    \item The experiment assumes that zeros mark missing values in five measurements. This convention needs source confirmation, and median imputation can hide meaningful missingness without recovering the true values.
+    \item The positive class is smaller, and no class weighting or threshold optimization was used. The default decisions may not match a real screening objective.
+    \item No clinical calibration study, subgroup fairness analysis, prospective evaluation, or external validation was performed. The app remains an educational prototype.
+\end{itemize}
+
+\section{Conclusion and Future Work}\label{sec:conclusion}
+
+This project compared five classifiers using one consistent, training-only preprocessing workflow. On the held-out test set, the decision tree gave the highest accuracy, sensitivity, F1, and MCC, while the MLP gave the highest ROC--AUC. The difference in rankings shows why a model should not be selected from accuracy alone. Confusion matrices were also necessary to see the balance between missed positives and false alarms.
+
+The project meets its educational goal: it demonstrates data auditing, stratified splitting, leakage prevention, model comparison, artifact saving, and simple app integration in a reproducible form. It does not establish a clinically valid diabetes predictor. A stronger follow-up would preserve verified dataset provenance, reserve a separate final test set, tune models inside nested cross-validation, report uncertainty intervals, investigate missingness, check subgroup performance, evaluate score calibration, and validate the final pipeline on data from a different population.
+
+\backmatter
+
+\bmhead{Acknowledgements}
+
+The original investigators who collected and documented the dataset are acknowledged through the citation to Smith et al. \cite{smith1988adap}.
+
+\section*{Declarations}
+
+\bmhead{Funding}
+
+No external funding was received for this course project.
+
+\bmhead{Competing interests}
+
+The author declares no competing interests.
+
+\bmhead{Ethics approval and consent to participate}
+
+No new participants were recruited and no identifying information was collected for this project. The analysis used a pre-existing de-identified dataset. This report does not independently claim an institutional ethics exemption.
+
+\bmhead{Consent for publication}
+
+Not applicable; the report contains no identifying participant information.
+
+\bmhead{Data and code availability}
+
+The analyzed CSV file, notebook, inference code, locked Python dependencies, generated results, and report-generation script are included in the project repository. Dataset lineage is described by Smith et al. \cite{smith1988adap}; the precise download location of the local CSV was not recorded.
+
+\bmhead{Author contribution}
+
+The named author is responsible for running and checking the experiment, interpreting the findings, revising the manuscript in their own words, and approving the submitted version.
+
+\bmhead{AI-assisted drafting}
+
+A generative AI assistant was used to help organize the initial LaTeX draft, prepare reproducible plotting code, and check consistency between the code and report. It was not used as a source of scientific evidence. All claims, citations, wording, and calculations must be reviewed and accepted by the author before submission.
+
+\bibliography{references}
+
+\end{document}
