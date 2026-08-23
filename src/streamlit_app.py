@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from model_inference import load_artifacts, predict
+from model_inference import load_pipeline, predict
 
 st.set_page_config(
     page_title="Diabetes Risk Predictor",
@@ -21,16 +21,16 @@ st.caption("For educational use only; this result is not a medical diagnosis.")
 
 
 @st.cache_resource
-def get_artifacts():
-    """Load model artifacts once per Streamlit process."""
+def get_pipeline():
+    """Load the model pipeline once per Streamlit process."""
 
-    return load_artifacts()
+    return load_pipeline()
 
 
 try:
-    model, scaler = get_artifacts()
+    pipeline = get_pipeline()
 except Exception as error:
-    st.error(f"Error loading model files: {error}")
+    st.error(f"Error loading the model pipeline: {error}")
     st.stop()
 
 st.subheader("Patient Diagnostic Measurements")
@@ -110,7 +110,7 @@ if st.button("🔍 Predict Risk", width="stretch"):
     }
 
     try:
-        result = predict(patient_values, model, scaler)
+        result = predict(patient_values, pipeline)
     except Exception as error:
         st.error(f"Unable to generate a prediction: {error}")
         st.stop()

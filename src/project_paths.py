@@ -20,5 +20,4 @@ MODEL_DIR = (
     .expanduser()
     .resolve()
 )
-MODEL_PATH = MODEL_DIR / "mlp_classifier.joblib"
-SCALER_PATH = MODEL_DIR / "standard_scaler.joblib"
+PIPELINE_PATH = MODEL_DIR / "diabetes_pipeline.joblib"
