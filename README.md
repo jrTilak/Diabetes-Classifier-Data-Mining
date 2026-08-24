@@ -1,6 +1,6 @@
 # Diabetes Classifier
 
-An educational machine-learning project that compares five classifiers on the Pima Indians Diabetes dataset. A Streamlit app uses the trained MLP pipeline to estimate diabetes risk from eight clinical measurements.
+An educational machine-learning project that compares five classifiers on the [Pima Indians Diabetes Database hosted by UCI Machine Learning on Kaggle](https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database). A Streamlit app uses the trained MLP pipeline to estimate diabetes risk from eight clinical measurements.
 
 The saved pipeline applies the same training-only median imputation and standard scaling used during evaluation, preventing target leakage and training–inference mismatch.
 

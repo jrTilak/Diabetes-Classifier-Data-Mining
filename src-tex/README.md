@@ -2,7 +2,7 @@
 
 This directory contains the reproducible diabetes-classifier course report. Its cover and preliminary pages follow the supplied Tribhuvan University/Purwanchal Campus project-report layout, while the main paper keeps the supplied research paper's organization and numbered citation style. The prose, tables, and figures were prepared specifically for this project.
 
-The approved three authors and institutional details are already populated in `report.tex`; confirm them before submission. The report uses A4 paper and a Times-style academic typeface. The cover is unnumbered, the abstract, table of contents, and abbreviation list use Roman numerals, and the main report restarts at Arabic page 1. Separate lists of figures and tables are intentionally omitted. Read the whole report and verify that every claim accurately reflects the team's work and understanding. The PDF includes a transparent AI-assisted drafting statement.
+The three approved authors and institutional details are populated in `report.tex`. The report uses A4 paper and a Times-style academic typeface. The cover is unnumbered, the abstract, table of contents, and abbreviation list use Roman numerals, and the main report restarts at Arabic page 1. Separate lists of figures and tables are intentionally omitted.
 
 ## Build and audit
 

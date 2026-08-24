@@ -48,7 +48,19 @@ FORBIDDEN_MANUSCRIPT_TEXT = {
     "Utsab Pandey",
     "PUR079BCT095",
     "Acknowledgement",
+    "Declarations",
+    "exact website from which this copy was downloaded",
+    "exact download source",
+    "precise download location",
+    "full provenance should be confirmed",
+    "70:30",
+    "87.01\\%",
+    "grouped median imputation",
+    "probability=True",
+    "max_iter=500",
+    "min_samples_leaf=5",
 }
+DATASET_SOURCE_URL = "https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database"
 REQUIRED_FRONT_MATTER = {
     r"\begin{titlepage}": "custom cover page",
     "assets/tu-logo.png": "TU logo",
@@ -74,12 +86,16 @@ def pass_check(message: str) -> None:
     print(f"PASS: {message}")
 
 
-def extract_pdf_text(pdf_path: Path) -> str:
+def extract_pdf_text(pdf_path: Path, *, preserve_layout: bool = False) -> str:
     if shutil.which("pdftotext") is None:
         raise RuntimeError("pdftotext is required for the local similarity audit")
     with tempfile.NamedTemporaryFile(suffix=".txt") as output:
+        command = ["pdftotext"]
+        if preserve_layout:
+            command.append("-layout")
+        command.extend([str(pdf_path), output.name])
         subprocess.run(
-            ["pdftotext", str(pdf_path), output.name],
+            command,
             check=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
@@ -120,6 +136,11 @@ def check_citations(tex: str, bib: str, errors: list[str]) -> None:
         fail(f"uncited bibliography entries: {', '.join(unused)}", errors)
     else:
         pass_check("every bibliography entry is cited")
+
+    if DATASET_SOURCE_URL not in bib or r"\cite{uciKagglePima}" not in tex:
+        fail("the verified Kaggle dataset source is missing or uncited", errors)
+    else:
+        pass_check("the verified Kaggle dataset source is cited")
 
 
 def check_results(tex: str, result_data: dict, errors: list[str]) -> None:
@@ -263,7 +284,8 @@ def to_roman(number: int) -> str:
 
 
 def check_rendered_structure(pdf_path: Path, report_text: str, errors: list[str]) -> None:
-    pages = report_text.split("\f")
+    layout_text = extract_pdf_text(pdf_path, preserve_layout=True)
+    pages = layout_text.split("\f")
     while pages and not pages[-1].strip():
         pages.pop()
     normalized_pages = [" ".join(page.split()) for page in pages]
@@ -279,12 +301,14 @@ def check_rendered_structure(pdf_path: Path, report_text: str, errors: list[str]
         for index in range(1, intro_index):
             lines = [line.strip() for line in pages[index].splitlines() if line.strip()]
             expected = to_roman(index)
-            if not lines or lines[-1] != expected:
+            # PDF text extraction can place a displayed equation number after the
+            # footer even though the footer is visibly at the bottom of the page.
+            if not lines or expected not in lines[-5:]:
                 pagination_errors.append(f"physical page {index + 1}: expected {expected}")
         for index in range(intro_index, len(pages)):
             lines = [line.strip() for line in pages[index].splitlines() if line.strip()]
             expected = str(index - intro_index + 1)
-            if not lines or lines[-1] != expected:
+            if not lines or expected not in lines[-5:]:
                 pagination_errors.append(f"physical page {index + 1}: expected {expected}")
         if pagination_errors:
             fail(f"rendered page-number sequence is incorrect: {pagination_errors[:4]}", errors)
