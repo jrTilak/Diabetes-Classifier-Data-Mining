@@ -1,35 +1,135 @@
-% Springer Nature author template, version 3.1 (December 2024).
-% Replace the author/course details below with the final institutional details
-% and review the full text in your own words before submission.
+% Course report prepared with the Springer Nature article class, version 3.1
+% (December 2024), and a Tribhuvan University project-report front matter.
 \documentclass[pdflatex,sn-vancouver-num]{sn-jnl}
 
+\usepackage[T1]{fontenc}
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb,amsfonts}
+\usepackage{newtxtext,newtxmath}
 \usepackage{booktabs}
 \usepackage{xcolor}
 
 \hypersetup{
     pdftitle={Comparative Evaluation of Five Machine Learning Classifiers for Diabetes Outcome Classification},
-    pdfauthor={Jrtilak}
+    pdfauthor={Sandesh Poudel, Sankalpa Gautam, and Tilak Thapa},
+    hidelinks
 }
 
 \raggedbottom
 
+% Match the project-report convention used in the supplied layout reference.
+\renewcommand{\sectionfont}{\normalfont\fontsize{14}{16}\selectfont\bfseries\centering}
+\makeatletter
+\renewcommand{\ps@plain}{%
+    \let\@mkboth\@gobbletwo
+    \let\@oddhead\@empty
+    \let\@evenhead\@empty
+    \def\@oddfoot{\vbox to 18pt{\vfill\reset@font\rmfamily\hfil\thepage\hfil}}%
+    \let\@evenfoot\@oddfoot
+}
+\makeatother
+
+\newcommand{\reportabstract}{This report compares five machine learning classifiers on a local copy of the Pima Indians Diabetes dataset. The aim was to build a reproducible educational experiment and examine how model conclusions change when several evaluation measures are considered together. The dataset contains 768 records, eight input variables, and a binary outcome. It was divided once into a stratified training set of 614 records and a held-out test set of 154 records. Zeros in glucose, blood pressure, skin thickness, insulin, and body mass index were treated as missing. Median imputation and standard scaling were learned only from the training set. A custom $k$-nearest neighbours classifier, a decision tree, a calibrated support vector machine, Gaussian Naive Bayes, and a multi-layer perceptron were evaluated. The decision tree obtained the highest test accuracy (78.57\%), sensitivity (68.52\%), F1 score (69.16\%), and Matthews correlation coefficient (0.527). The multi-layer perceptron had the highest ROC--AUC (81.04\%). These results do not establish clinical usefulness because they come from one small, demographically restricted dataset and one train--test split. The saved multi-layer perceptron pipeline and Streamlit interface are therefore presented only as an educational demonstration.}
+
+\newcommand{\reportkeywords}{diabetes classification, machine learning, Pima Indians Diabetes dataset, comparative evaluation, data mining}
+
 \begin{document}
 
-\title[Diabetes outcome classification]{Comparative Evaluation of Five Machine Learning Classifiers for Diabetes Outcome Classification}
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+\thispagestyle{empty}
+\thispdfpagelabel{}
+\enlargethispage{4.5cm}
+\begin{center}
+    \vspace*{0.5cm}
+    \includegraphics[height=3.5cm]{assets/tu-logo.png}
 
-\author*[1]{\fnm{Jrtilak}}\email{contact@jrtilak.dev}
+    \vspace{0.35cm}
+    {\fontsize{14}{17}\selectfont\bfseries
+    TRIBHUVAN UNIVERSITY\par
+    INSTITUTE OF ENGINEERING\par
+    PURWANCHAL CAMPUS\par}
 
-\affil*[1]{\orgdiv{Department of Computer Engineering}, \orgname{Data Warehouse and Data Mining Laboratory, BCT IV/I C/D}}
+    \vspace{1.25cm}
+    {\fontsize{13}{16}\selectfont\bfseries
+    \makebox[\textwidth][c]{DATA WAREHOUSE AND DATA MINING LAB REPORT}\par}
 
-\abstract{This report compares five machine learning classifiers on a local copy of the Pima Indians Diabetes dataset. The aim was to build a reproducible educational experiment and examine how model conclusions change when several evaluation measures are considered together. The dataset contains 768 records, eight input variables, and a binary outcome. It was divided once into a stratified training set of 614 records and a held-out test set of 154 records. Zeros in glucose, blood pressure, skin thickness, insulin, and body mass index were treated as missing. Median imputation and standard scaling were learned only from the training set. A custom $k$-nearest neighbours classifier, a decision tree, a calibrated support vector machine, Gaussian Naive Bayes, and a multi-layer perceptron were evaluated. The decision tree obtained the highest test accuracy (78.57\%), sensitivity (68.52\%), F1 score (69.16\%), and Matthews correlation coefficient (0.527). The multi-layer perceptron had the highest ROC--AUC (81.04\%). These results do not establish clinical usefulness because they come from one small, demographically restricted dataset and one train--test split. The saved multi-layer perceptron pipeline and Streamlit interface are therefore presented only as an educational demonstration.}
+    \vspace{0.35cm}
+    {\fontsize{14}{17}\selectfont\bfseries ON\par}
 
-\keywords{diabetes classification, machine learning, Pima Indians Diabetes dataset, comparative evaluation, data mining}
+    \vspace{0.35cm}
+    {\fontsize{16}{20}\selectfont\bfseries
+    \makebox[\textwidth][c]{COMPARATIVE EVALUATION OF FIVE MACHINE}\par
+    \makebox[\textwidth][c]{LEARNING CLASSIFIERS FOR DIABETES}\par
+    OUTCOME CLASSIFICATION\par}
 
-\maketitle
+    \vspace{1.05cm}
+    {\fontsize{14}{17}\selectfont\bfseries BY\par}
 
-\section{Introduction}\label{sec:introduction}
+    \vspace{0.35cm}
+    {\fontsize{13}{16}\selectfont\bfseries
+    SANDESH POUDEL (PUR079BCT074)\par
+    SANKALPA GAUTAM (PUR079BCT078)\par
+    TILAK THAPA (PUR079BCT094)\par}
+
+    \vfill
+    {\fontsize{12}{15}\selectfont\bfseries
+    \makebox[\textwidth][c]{DEPARTMENT OF ELECTRONICS AND COMPUTER ENGINEERING}\par
+    PURWANCHAL CAMPUS\par
+    DHARAN, NEPAL\par}
+
+    \vspace{0.75cm}
+    {\fontsize{13}{16}\selectfont\bfseries AUGUST 2026\par}
+\end{center}
+\end{titlepage}
+\hypersetup{pageanchor=true}
+
+\pagenumbering{roman}
+\setcounter{page}{1}
+\pagestyle{plain}
+
+\section*{ABSTRACT}
+\phantomsection
+\addcontentsline{toc}{section}{ABSTRACT}
+\noindent\reportabstract\par
+\vspace{0.5cm}
+\noindent\textbf{Keywords:} \reportkeywords\par
+
+\clearpage
+\renewcommand{\contentsname}{TABLE OF CONTENTS}
+\pdfbookmark[1]{TABLE OF CONTENTS}{table-of-contents}
+\tableofcontents
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{LIST OF ABBREVIATIONS}
+\section*{LIST OF ABBREVIATIONS}
+\vspace{0.5cm}
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}p{0.19\textwidth}p{0.67\textwidth}@{}}
+AUC & Area under the curve \\
+BMI & Body mass index \\
+CSV & Comma-separated values \\
+FN & False negative \\
+FP & False positive \\
+KNN & $k$-nearest neighbours \\
+MCC & Matthews correlation coefficient \\
+MLP & Multi-layer perceptron \\
+RBF & Radial basis function \\
+ReLU & Rectified linear unit \\
+ROC & Receiver operating characteristic \\
+SVM & Support vector machine \\
+TN & True negative \\
+TP & True positive \\
+\end{tabular}
+\end{center}
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\section{INTRODUCTION}\label{sec:introduction}
 
 Diabetes is a chronic condition associated with elevated blood glucose and can lead to serious damage when it is not managed. The World Health Organization describes diabetes as a major public-health problem and stresses the value of diagnosis and continued care \cite{who2024diabetes}. This makes diabetes data a common setting for learning how classification algorithms work. It does not, however, mean that a small classroom model can be used as a medical device.
 
@@ -48,7 +148,7 @@ The report makes the following contributions:
 
 The rest of the report follows the organization of the supplied example paper. Section~\ref{sec:related} gives the research background. Sections~\ref{sec:methods} and \ref{sec:models} describe the data, preprocessing, and classifiers. Section~\ref{sec:metrics} defines the evaluation measures. Section~\ref{sec:results} presents the findings and limitations, and Section~\ref{sec:conclusion} concludes the work.
 
-\section{Related Work}\label{sec:related}
+\section{RELATED WORK}\label{sec:related}
 
 The dataset used in this project is linked to the work of Smith et al., who studied diabetes onset in a high-risk Pima population and described the clinical variables behind the prediction task \cite{smith1988adap}. That early study helped make this group of attributes a widely used machine learning benchmark. The local CSV file has the same eight predictors and binary outcome, although the repository does not record the exact website from which this copy was downloaded. For that reason, the original paper is used as the dataset-lineage reference rather than claiming an unverified download source.
 
@@ -56,7 +156,7 @@ Later research has compared different classifiers on diabetes data. Maniruzzaman
 
 The five model families in this report also have different foundations. Nearest-neighbour classification assigns a label from nearby training examples \cite{cover1967nearest}. Classification trees divide the feature space with a sequence of learned rules \cite{breiman1984cart}. Support-vector machines seek a separating boundary with a large margin and can use kernels for non-linear patterns \cite{cortes1995svm}. Neural networks learn layered representations through weight updates such as back-propagation \cite{rumelhart1986backprop}. These differences justify testing more than one model under a shared protocol rather than assuming that the most complex classifier will win.
 
-\section{Materials and Methods}\label{sec:methods}
+\section{MATERIALS AND METHODS}\label{sec:methods}
 
 \subsection{Experimental workflow}\label{subsec:workflow}
 
@@ -125,7 +225,7 @@ The final rerun used Python 3.12, scikit-learn 1.9.0, pandas 2.3.3, NumPy 2.5.2,
 
 The repository pins the Python dependencies and stores the split seed and model settings in code. Running \texttt{generate\_figures.py} rebuilds the plots, numerical JSON file, CSV table, and LaTeX results table. The script also checks the newly computed values against the metrics reported here and stops if they differ.
 
-\section{Machine Learning Classifiers}\label{sec:models}
+\section{MACHINE LEARNING CLASSIFIERS}\label{sec:models}
 
 Table~\ref{tab:settings} lists the model settings used in the final run. They were fixed in the notebook; no grid search or repeated validation procedure was recorded. The purpose was a controlled comparison of several model families, not a claim that each model had been fully optimized.
 
@@ -145,7 +245,7 @@ MLP & Hidden layers (16, 8); ReLU; Adam; $\alpha=0.01$; at most 1000 iterations;
 \end{tabular}
 \end{table}
 
-\subsection{Custom $k$-nearest neighbours}\label{subsec:knn}
+\subsection{Custom \texorpdfstring{$k$}{k}-nearest neighbours}\label{subsec:knn}
 
 KNN stores the training examples and compares a new row with them. For two standardized feature vectors $\mathbf{x}$ and $\mathbf{x}_i$, the Euclidean distance is
 
@@ -188,7 +288,7 @@ The MLP contains two hidden layers with 16 and 8 units. Rectified linear unit ac
 
 The MLP was saved together with the fitted imputer and scaler in one joblib pipeline. The Streamlit interface loads this single artifact, accepts eight numeric inputs, and displays the predicted class and model score. The interface also states that it is an educational tool rather than medical advice.
 
-\section{Evaluation Metrics}\label{sec:metrics}
+\section{EVALUATION METRICS}\label{sec:metrics}
 
 Let true positives (TP) and true negatives (TN) be correctly classified positive and negative rows. False positives (FP) are negative rows classified as positive, and false negatives (FN) are positive rows classified as negative. The threshold-based measures are
 
@@ -215,7 +315,7 @@ MCC was introduced by Matthews \cite{matthews1975mcc} and is useful when class c
 
 ROC curves show sensitivity against false-positive rate over many score thresholds \cite{fawcett2006roc}. ROC--AUC summarizes this curve and can be interpreted as the probability that a randomly selected positive row receives a higher score than a randomly selected negative row \cite{hanley1982auc}. A value of 0.5 corresponds to chance ranking and 1 indicates perfect ranking. AUC does not select a clinical decision threshold and does not prove that the scores are well calibrated.
 
-\section{Results and Discussion}\label{sec:results}
+\section{RESULTS AND DISCUSSION}\label{sec:results}
 
 \subsection{Exploratory observations}\label{subsec:eda}
 
@@ -308,7 +408,7 @@ The main limitations are as follows:
     \item No clinical calibration study, subgroup fairness analysis, prospective evaluation, or external validation was performed. The app remains an educational prototype.
 \end{itemize}
 
-\section{Conclusion and Future Work}\label{sec:conclusion}
+\section{CONCLUSION AND FUTURE WORK}\label{sec:conclusion}
 
 This project compared five classifiers using one consistent, training-only preprocessing workflow. On the held-out test set, the decision tree gave the highest accuracy, sensitivity, F1, and MCC, while the MLP gave the highest ROC--AUC. The difference in rankings shows why a model should not be selected from accuracy alone. Confusion matrices were also necessary to see the balance between missed positives and false alarms.
 
@@ -316,40 +416,40 @@ The project meets its educational goal: it demonstrates data auditing, stratifie
 
 \backmatter
 
-\bmhead{Acknowledgements}
+\phantomsection
+\addcontentsline{toc}{section}{DECLARATIONS}
+\section*{DECLARATIONS}
 
-The original investigators who collected and documented the dataset are acknowledged through the citation to Smith et al. \cite{smith1988adap}.
-
-\section*{Declarations}
-
-\bmhead{Funding}
+\bmhead*{Funding}
 
 No external funding was received for this course project.
 
-\bmhead{Competing interests}
+\bmhead*{Competing interests}
 
-The author declares no competing interests.
+The authors declare no competing interests.
 
-\bmhead{Ethics approval and consent to participate}
+\bmhead*{Ethics approval and consent to participate}
 
 No new participants were recruited and no identifying information was collected for this project. The analysis used a pre-existing de-identified dataset. This report does not independently claim an institutional ethics exemption.
 
-\bmhead{Consent for publication}
+\bmhead*{Consent for publication}
 
 Not applicable; the report contains no identifying participant information.
 
-\bmhead{Data and code availability}
+\bmhead*{Data and code availability}
 
 The analyzed CSV file, notebook, inference code, locked Python dependencies, generated results, and report-generation script are included in the project repository. Dataset lineage is described by Smith et al. \cite{smith1988adap}; the precise download location of the local CSV was not recorded.
 
-\bmhead{Author contribution}
+\bmhead*{Author contribution}
 
-The named author is responsible for running and checking the experiment, interpreting the findings, revising the manuscript in their own words, and approving the submitted version.
+The three authors jointly ran and checked the experiment, interpreted the findings, revised the manuscript in their own words, and approved the submitted version.
 
-\bmhead{AI-assisted drafting}
+\bmhead*{AI-assisted drafting}
 
-A generative AI assistant was used to help organize the initial LaTeX draft, prepare reproducible plotting code, and check consistency between the code and report. It was not used as a source of scientific evidence. All claims, citations, wording, and calculations must be reviewed and accepted by the author before submission.
+A generative AI assistant was used to help organize the initial LaTeX draft, prepare reproducible plotting code, and check consistency between the code and report. It was not used as a source of scientific evidence. The three authors remain responsible for the final wording, claims, citations, and calculations.
 
+\phantomsection
+\addcontentsline{toc}{section}{REFERENCES}
 \bibliography{references}
 
 \end{document}

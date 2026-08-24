@@ -1,8 +1,8 @@
 # LaTeX report
 
-This directory contains an original, reproducible draft of the diabetes-classifier report. It follows the supplied paper's broad organization while using the official Springer Nature author template and newly generated text, tables, and figures.
+This directory contains the reproducible diabetes-classifier course report. Its cover and preliminary pages follow the supplied Tribhuvan University/Purwanchal Campus project-report layout, while the main paper keeps the supplied research paper's organization and numbered citation style. The prose, tables, and figures were prepared specifically for this project.
 
-Before submission, replace or confirm the author and institutional details near the top of `report.tex`. Read the whole report, verify every claim, and revise the wording so the final document accurately reflects your own work and understanding. The PDF includes a transparent AI-assisted drafting statement.
+The approved three authors and institutional details are already populated in `report.tex`; confirm them before submission. The report uses A4 paper and a Times-style academic typeface. The cover is unnumbered, the abstract, table of contents, and abbreviation list use Roman numerals, and the main report restarts at Arabic page 1. Separate lists of figures and tables are intentionally omitted. Read the whole report and verify that every claim accurately reflects the team's work and understanding. The PDF includes a transparent AI-assisted drafting statement.
 
 ## Build and audit
 
@@ -10,7 +10,7 @@ Requirements:
 
 - the project dependencies installed through `uv`;
 - Tectonic 0.17 or a compatible LaTeX installation; and
-- Poppler's `pdftotext` for the local similarity audit.
+- Poppler's `pdftotext`, `pdfinfo`, and `pdffonts` for the local report audit.
 
 From the repository root, run:
 
@@ -34,6 +34,7 @@ The phrase-overlap check is a small local safeguard. It is not a commercial plag
 report.tex                 Main manuscript
 references.bib             Cited sources
 report.pdf                 Reviewed rendered report
+assets/tu-logo.png         TU logo used on the cover
 generate_figures.py        Reproducible experiment and plots
 check_report.py            Local citation/consistency/similarity audit
 figures/                    Generated vector figures
@@ -43,4 +44,4 @@ sn-jnl.cls                 Official Springer Nature class
 sn-vancouver-num.bst       Official numbered reference style
 ```
 
-The template assets are unchanged files from Springer Nature's LaTeX package, version 3.1 (December 2024): <https://www.springernature.com/gp/authors/campaigns/latex-author-support>. The committed report is suitable for the course project, but a real Springer submission would also need to follow the target journal's current packaging rules.
+The Springer class and bibliography-style files are unchanged assets from Springer Nature's LaTeX package, version 3.1 (December 2024): <https://www.springernature.com/gp/authors/campaigns/latex-author-support>. The cover logo was extracted from the user-supplied university report reference. The committed PDF is formatted as a course report rather than a journal-submission package.

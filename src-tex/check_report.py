@@ -34,6 +34,36 @@ REQUIRED_FIGURES = {
     "permutation_importance.pdf",
 }
 
+EXPECTED_AUTHOR_IDS = {
+    "PUR079BCT074",
+    "PUR079BCT078",
+    "PUR079BCT094",
+}
+EXPECTED_AUTHOR_NAMES = {
+    "Sandesh Poudel",
+    "Sankalpa Gautam",
+    "Tilak Thapa",
+}
+FORBIDDEN_MANUSCRIPT_TEXT = {
+    "Utsab Pandey",
+    "PUR079BCT095",
+    "Acknowledgement",
+}
+REQUIRED_FRONT_MATTER = {
+    r"\begin{titlepage}": "custom cover page",
+    "assets/tu-logo.png": "TU logo",
+    r"\thispdfpagelabel{}": "blank PDF label for the cover",
+    r"\usepackage{newtxtext,newtxmath}": "Times-style text and math fonts",
+    r"\pagenumbering{roman}": "Roman front-matter numbering",
+    r"\tableofcontents": "table of contents",
+    "LIST OF ABBREVIATIONS": "list of abbreviations",
+    r"\pagenumbering{arabic}": "Arabic main-matter numbering",
+}
+FORBIDDEN_FRONT_MATTER = {
+    r"\listoffigures": "list of figures",
+    r"\listoftables": "list of tables",
+}
+
 
 def fail(message: str, errors: list[str]) -> None:
     errors.append(message)
@@ -152,18 +182,160 @@ def check_results(tex: str, result_data: dict, errors: list[str]) -> None:
         pass_check("key findings and limitations are stated in the manuscript")
 
 
+def check_report_structure(tex: str, errors: list[str]) -> None:
+    tex_casefold = tex.casefold()
+    missing_names = sorted(name for name in EXPECTED_AUTHOR_NAMES if name.casefold() not in tex_casefold)
+    if missing_names:
+        fail(f"required cover authors are missing: {', '.join(missing_names)}", errors)
+    else:
+        pass_check("the cover contains all three approved authors")
+
+    found_ids = set(re.findall(r"PUR079BCT\d{3}", tex, flags=re.IGNORECASE))
+    found_ids = {author_id.upper() for author_id in found_ids}
+    if found_ids != EXPECTED_AUTHOR_IDS:
+        fail(f"cover author IDs do not match the approved set: {sorted(found_ids)}", errors)
+    else:
+        pass_check("the cover contains exactly the three approved author IDs")
+
+    forbidden = sorted(text for text in FORBIDDEN_MANUSCRIPT_TEXT if text.casefold() in tex_casefold)
+    if forbidden:
+        fail(f"excluded report text remains: {', '.join(forbidden)}", errors)
+    else:
+        pass_check("the excluded author and acknowledgement section are absent")
+
+    missing_front_matter = [label for token, label in REQUIRED_FRONT_MATTER.items() if token not in tex]
+    if missing_front_matter:
+        fail(f"required report structure is missing: {', '.join(missing_front_matter)}", errors)
+    else:
+        pass_check("cover, contents, abbreviations, and Roman/Arabic numbering are configured")
+
+    unwanted_front_matter = [label for token, label in FORBIDDEN_FRONT_MATTER.items() if token in tex]
+    if unwanted_front_matter:
+        fail(f"unwanted front matter remains: {', '.join(unwanted_front_matter)}", errors)
+    else:
+        pass_check("lists of figures and tables are omitted")
+
+
 def check_render_log(errors: list[str]) -> None:
     log_path = REPORT_DIR / "build" / "report.log"
     if not log_path.exists():
         fail("build/report.log does not exist; compile the report first", errors)
         return
     log = log_path.read_text(encoding="utf-8", errors="ignore")
-    bad_patterns = ["LaTeX Error", "undefined citations", "There were undefined references", "Overfull \\hbox"]
+    bad_patterns = [
+        "LaTeX Error",
+        "undefined citations",
+        "There were undefined references",
+        "Overfull \\hbox",
+        "Token not allowed in a PDF string",
+        "between bookmark levels is greater",
+        "destination with the same identifier",
+    ]
     found = [pattern for pattern in bad_patterns if pattern.lower() in log.lower()]
     if found:
         fail(f"render log contains: {', '.join(found)}", errors)
     else:
         pass_check("render log has no errors, unresolved references, or overfull boxes")
+
+
+def to_roman(number: int) -> str:
+    values = [
+        (1000, "m"),
+        (900, "cm"),
+        (500, "d"),
+        (400, "cd"),
+        (100, "c"),
+        (90, "xc"),
+        (50, "l"),
+        (40, "xl"),
+        (10, "x"),
+        (9, "ix"),
+        (5, "v"),
+        (4, "iv"),
+        (1, "i"),
+    ]
+    result: list[str] = []
+    for value, numeral in values:
+        while number >= value:
+            result.append(numeral)
+            number -= value
+    return "".join(result)
+
+
+def check_rendered_structure(pdf_path: Path, report_text: str, errors: list[str]) -> None:
+    pages = report_text.split("\f")
+    while pages and not pages[-1].strip():
+        pages.pop()
+    normalized_pages = [" ".join(page.split()) for page in pages]
+
+    intro_pages = [
+        index for index, page in enumerate(normalized_pages) if page.upper().startswith("1 INTRODUCTION")
+    ]
+    if len(intro_pages) != 1:
+        fail(f"could not identify exactly one Introduction opening page: {intro_pages}", errors)
+    else:
+        intro_index = intro_pages[0]
+        pagination_errors: list[str] = []
+        for index in range(1, intro_index):
+            lines = [line.strip() for line in pages[index].splitlines() if line.strip()]
+            expected = to_roman(index)
+            if not lines or lines[-1] != expected:
+                pagination_errors.append(f"physical page {index + 1}: expected {expected}")
+        for index in range(intro_index, len(pages)):
+            lines = [line.strip() for line in pages[index].splitlines() if line.strip()]
+            expected = str(index - intro_index + 1)
+            if not lines or lines[-1] != expected:
+                pagination_errors.append(f"physical page {index + 1}: expected {expected}")
+        if pagination_errors:
+            fail(f"rendered page-number sequence is incorrect: {pagination_errors[:4]}", errors)
+        else:
+            pass_check("rendered front matter uses Roman numerals and main matter restarts at Arabic 1")
+
+    front_titles = [page.upper() for page in normalized_pages[1:4]]
+    expected_front_titles = ["ABSTRACT", "TABLE OF CONTENTS", "LIST OF ABBREVIATIONS"]
+    incorrect_front_titles = [
+        expected
+        for expected, page in zip(expected_front_titles, front_titles, strict=False)
+        if not page.startswith(expected)
+    ]
+    if len(front_titles) != len(expected_front_titles) or incorrect_front_titles:
+        fail(f"unexpected preliminary-page order: {incorrect_front_titles}", errors)
+    else:
+        pass_check("preliminary pages contain only the abstract, contents, and abbreviations")
+
+    unwanted_lists = [
+        heading for heading in ["LIST OF FIGURES", "LIST OF TABLES"] if heading in report_text.upper()
+    ]
+    if unwanted_lists:
+        fail(f"unwanted rendered front matter remains: {', '.join(unwanted_lists)}", errors)
+    else:
+        pass_check("rendered PDF omits lists of figures and tables")
+
+    if re.search(r"\bddd(?:[ivxlcdm]+|\d+)\b", report_text, flags=re.IGNORECASE):
+        fail("rendered page numbers contain the Springer class's stray 'ddd' prefix", errors)
+    else:
+        pass_check("rendered page numbers contain no stray footer prefix")
+
+    pdfinfo = subprocess.run(
+        ["pdfinfo", str(pdf_path)], check=True, capture_output=True, text=True
+    ).stdout
+    size_match = re.search(r"Page size:\s+([0-9.]+) x ([0-9.]+) pts", pdfinfo)
+    if size_match is None:
+        fail("could not read the rendered PDF page size", errors)
+    else:
+        width, height = (float(value) for value in size_match.groups())
+        if abs(width - 595.28) > 0.1 or abs(height - 841.89) > 0.1:
+            fail(f"rendered page is not A4: {width} x {height} pt", errors)
+        else:
+            pass_check("rendered PDF uses A4 page dimensions")
+
+    font_output = subprocess.run(
+        ["pdffonts", str(pdf_path)], check=True, capture_output=True, text=True
+    ).stdout
+    if "TeXGyreTermesX" not in font_output:
+        fail("rendered PDF is missing the configured Times-style text font", errors)
+    else:
+        pass_check("rendered PDF embeds the Times-style text font")
 
 
 def main() -> int:
@@ -181,6 +353,7 @@ def main() -> int:
 
     check_citations(tex, bib, errors)
     check_results(tex, results, errors)
+    check_report_structure(tex, errors)
 
     present_figures = {path.name for path in (REPORT_DIR / "figures").glob("*.pdf")}
     missing_figures = sorted(REQUIRED_FIGURES - present_figures)
@@ -196,6 +369,25 @@ def main() -> int:
         fail("no rendered report PDF exists", errors)
     else:
         report_text = extract_pdf_text(pdf_path)
+        report_text_casefold = report_text.casefold()
+        missing_pdf_names = sorted(
+            name for name in EXPECTED_AUTHOR_NAMES if name.casefold() not in report_text_casefold
+        )
+        if missing_pdf_names:
+            fail(f"required authors are absent from the rendered PDF: {', '.join(missing_pdf_names)}", errors)
+        else:
+            pass_check("rendered cover contains all three approved authors")
+
+        forbidden_pdf_text = sorted(
+            text for text in FORBIDDEN_MANUSCRIPT_TEXT if text.casefold() in report_text_casefold
+        )
+        if forbidden_pdf_text:
+            fail(f"excluded text appears in the rendered PDF: {', '.join(forbidden_pdf_text)}", errors)
+        else:
+            pass_check("excluded author and acknowledgement text are absent from the rendered PDF")
+
+        check_rendered_structure(pdf_path, report_text, errors)
+
         sample_text = extract_pdf_text(SAMPLE_PATH)
         instruction_text = INSTRUCTIONS_PATH.read_text(encoding="utf-8", errors="ignore")
         for label, source_text in [("sample report", sample_text), ("assignment instructions", instruction_text)]:
