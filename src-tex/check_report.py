@@ -49,6 +49,7 @@ FORBIDDEN_MANUSCRIPT_TEXT = {
     "PUR079BCT095",
     "Acknowledgement",
     "Declarations",
+    "Future Work",
     "exact website from which this copy was downloaded",
     "exact download source",
     "precise download location",
@@ -188,17 +189,22 @@ def check_results(tex: str, result_data: dict, errors: list[str]) -> None:
     if len(errors) == table_error_count:
         pass_check("the generated metrics table matches results.json")
 
-    required_phrases = [
-        "training set of 614 records",
-        "held-out test set of 154 records",
-        "78.57\\%",
-        "81.04\\%",
-        "one train--test split",
-        "educational demonstration",
+    required_statements = {
+        "768 total records": r"(?:\b768\b.{0,40}\b(?:records|rows)\b|\b(?:records|rows)\b.{0,40}\b768\b)",
+        "614 training records": r"(?:\b614\b.{0,40}\btrain\w*\b|\btrain\w*\b.{0,40}\b614\b)",
+        "154 held-out test records": r"(?:\b154\b.{0,40}\b(?:test\w*|held-out)\b|\b(?:test\w*|held-out)\b.{0,40}\b154\b)",
+        "best accuracy": r"78\.57\\%",
+        "best ROC--AUC": r"81\.04\\%",
+        "single-split limitation": r"\b(?:one|single)\b.{0,30}\b(?:train--test\s+)?split\b",
+        "educational scope": r"\beducational demonstration\b",
+    }
+    missing_statements = [
+        label
+        for label, pattern in required_statements.items()
+        if re.search(pattern, tex, flags=re.IGNORECASE) is None
     ]
-    missing_phrases = [phrase for phrase in required_phrases if phrase not in tex]
-    if missing_phrases:
-        fail(f"required result or limitation text is missing: {missing_phrases}", errors)
+    if missing_statements:
+        fail(f"required result or limitation statement is missing: {missing_statements}", errors)
     else:
         pass_check("key findings and limitations are stated in the manuscript")
 
