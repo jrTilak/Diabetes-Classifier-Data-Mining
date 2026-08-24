@@ -26,7 +26,7 @@ This command:
 4. compiles `src-tex/report.pdf`; and
 5. checks citations, numerical consistency, render warnings, placeholders, and exact phrase overlap with the supplied sample and instructions.
 
-The phrase-overlap check is a small local safeguard. It is not a commercial plagiarism service or an AI detector, and it cannot guarantee an institutional checker result. No report text is uploaded to a third-party service.
+The phrase-overlap check is a small local safeguard, not a substitute for institutional plagiarism or authorship review, and it cannot guarantee an institutional checker result. No report text is uploaded to a third-party service.
 
 ## Main files
 

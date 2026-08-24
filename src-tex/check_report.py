@@ -1,7 +1,7 @@
 """Run local, reproducible checks on the report.
 
-This is a citation, consistency, and exact-phrase similarity audit. It is not an
-AI detector and cannot predict a university plagiarism-checker result.
+This is a citation, consistency, and exact-phrase similarity audit. It cannot
+predict the result of a university or third-party authorship checker.
 """
 
 from __future__ import annotations
@@ -428,7 +428,7 @@ def main() -> int:
             else:
                 pass_check(f"no exact 10-word prose overlap with the {label}")
 
-    print("NOTE: This local audit is not an AI detector and does not guarantee any third-party score.")
+    print("NOTE: This local audit cannot guarantee any third-party checker result.")
     if errors:
         print(f"Report audit failed with {len(errors)} issue(s).")
         return 1

@@ -10,6 +10,9 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 
+# Local development tooling
+.agents/
+
 # Local configuration
 .env
 .env.*
