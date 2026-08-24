@@ -396,11 +396,11 @@ The experiment has several important limitations:
 \end{itemize}
 
 \FloatBarrier
-\section{CONCLUSION AND FUTURE WORK}\label{sec:conclusion}
+\section{CONCLUSION}\label{sec:conclusion}
 
 This project compared five classifiers using one consistent, training-only preprocessing workflow. On the held-out test set, the decision tree gave the highest accuracy, sensitivity, F1, and MCC, while the MLP gave the highest ROC--AUC. The difference in rankings shows why a model should not be selected from accuracy alone. Confusion matrices were also necessary to see the balance between missed positives and false alarms.
 
-The project produced a reproducible comparison of five classifiers and connected the saved MLP pipeline to a working Streamlit interface. It does not establish a clinically valid diabetes predictor. A stronger evaluation would tune the models within nested cross-validation, report uncertainty across repeated splits, and keep an untouched final test set. Work beyond a classroom demonstration would also require a closer study of the zero-value convention, score calibration, subgroup performance, and independent validation on a different population.
+The project produced a reproducible comparison of five classifiers and connected the saved MLP pipeline to a working Streamlit interface. The results describe this dataset and fixed split only; they do not establish a clinically valid diabetes predictor. The application should therefore be understood as an educational demonstration of the completed machine learning workflow.
 
 \backmatter
 
